@@ -3,5 +3,5 @@
 # Chart + static EKS config stay in service-orders (values-eks.yaml).
 image:
   repository: 577572726499.dkr.ecr.us-east-1.amazonaws.com/service-orders
-  tag: "v0.1.0"
+  tag: "v0.1.1"
   pullPolicy: Always
