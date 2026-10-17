@@ -44,4 +44,6 @@ Until then: flat `<service>/<env>/` only.
 
 1. Create GitHub repo `gurujix-tech/application-manifests` and push this tree.
 2. Register the repo in Argo CD on EKS (same credentials pattern as other private repos).
-3. In `service-orders`, set secret `APPLICATION_MANIFESTS_TOKEN` (PAT with `contents:write` on this repo).
+3. In `service-orders`, set secret `APPLICATION_MANIFESTS_TOKEN` (fine-grained PAT on this repo with
+   **Contents: Read and write** and **Pull requests: Read and write**).
+4. Promotes from `service-orders` CI open a PR (with image/SHA/run links) and squash-merge it — no direct push to `main`.
