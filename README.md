@@ -9,18 +9,31 @@ Platform cluster config (Argo Applications, observability, Kyverno, LBC, …) st
 
 ```text
 service-orders/
-  dev/values.yaml    # image.tag = semver (vMAJOR.MINOR.PATCH), set by release tag CI
+  dev/values.yaml    # auto-promoted on every merge to service-orders main
+  qa/values.yaml     # promoted only via Actions → Promote (workflow_dispatch)
 ```
 
-## Releases (semver)
+## Releases + promote ladder
 
 1. Feature branch → PR (all checks).
 2. Merge to `service-orders` `main`.
-3. CI **auto-bumps patch** (`v0.1.0` → `v0.1.1` → …), creates the git tag, publishes ECR, promote-PR to `dev/values.yaml`.
-4. You do **not** tag by hand. Later envs: promote the **same** semver (dispatch + approve) — no rebuild.
+3. CI **auto-bumps patch** (`v0.1.0` → `v0.1.1` → …), git tag, ECR publish, promote-PR → **`dev`**.
+4. When ready for QA: GitHub Actions on `service-orders` → **Promote** → Run workflow  
+   - `target_env`: `qa`  
+   - `semver`: leave empty to copy whatever is in `dev`, or set e.g. `v0.1.3`  
+   - Running the workflow **is** the gate; it opens + squash-merges the manifests PR.
+5. Same semver later → `uat` / `prod` (add folders + workflow options; drop auto-merge for prod).
 
-To bump **minor/major** later: add a workflow input or label; until then every main merge is patch +1.
+No rebuild on promote. No manual `git tag` for normal releases.
 
+## Envs
+
+| Env | Runtime | How pin updates |
+| --- | --- | --- |
+| **local** | kind | not in this repo |
+| **dev** | EKS `default` ns | auto on main merge |
+| **qa** | EKS `qa` ns (same cluster) | Promote workflow |
+| **uat** / **prod** | later | Promote + stricter approval |
 
 ## Layout (later — multi-team + CODEOWNERS)
 
@@ -31,29 +44,11 @@ teams/<team>/helm/<service>/<env>/values.yaml
 CODEOWNERS
 ```
 
-Example `CODEOWNERS`:
-
-```text
-*                       @gurujix-tech/platform
-teams/checkout/         @gurujix-tech/checkout
-```
-
-Then: protect `main` (PR + required CODEOWNERS review); point Argo `path:` and CI promote at the new paths; keep app-team tokens scoped to this repo only (never `platform-gitops` write).
-
 Until then: flat `<service>/<env>/` only.
-
-## Envs
-
-| Env | Runtime |
-| --- | --- |
-| **local** | kind (not promoted here) |
-| **dev** | EKS learning account |
-| **staging** / **prod** | later |
 
 ## Bootstrap
 
-1. Create GitHub repo `gurujix-tech/application-manifests` and push this tree.
-2. Register the repo in Argo CD on EKS (same credentials pattern as other private repos).
-3. In `service-orders`, set secret `APPLICATION_MANIFESTS_TOKEN` (fine-grained PAT on this repo with
-   **Contents: Read and write** and **Pull requests: Read and write**).
-4. Promotes from `service-orders` CI open a PR (with image/SHA/run links) and squash-merge it — no direct push to `main`.
+1. Repo `gurujix-tech/application-manifests` with this tree.
+2. Argo CD can fetch the repo (public or registered credentials).
+3. `service-orders` secret `APPLICATION_MANIFESTS_TOKEN` — Contents + Pull requests R/W on this repo.
+4. Push `platform-gitops` so `apps-eks/service-orders-qa.yaml` is synced.

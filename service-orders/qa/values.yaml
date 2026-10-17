@@ -1,0 +1,10 @@
+# Env=qa pin. Updated only by promote workflow (workflow_dispatch), not by every main merge.
+# Same image artifact as dev — promote copies the semver; no rebuild.
+# Ingress off: one public host (app.gurujix.com) stays on dev; hit qa via kubectl port-forward.
+image:
+  repository: 577572726499.dkr.ecr.us-east-1.amazonaws.com/service-orders
+  tag: "8e9da30881d8010190c300445ec88091cf98e24f"
+  pullPolicy: Always
+
+ingress:
+  enabled: false
