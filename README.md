@@ -1,0 +1,47 @@
+# application-manifests
+
+Desired deploy state for Gurujix **application** workloads (image pins, env-specific values).
+
+Platform cluster config (Argo Applications, observability, Kyverno, LBC, …) stays in
+[`platform-gitops`](https://github.com/gurujix-tech/platform-gitops). App teams should not need write access there.
+
+## Layout (now)
+
+```text
+service-orders/
+  dev/values.yaml    # image.tag promoted by service-orders CI after ECR publish
+```
+
+## Layout (later — multi-team + CODEOWNERS)
+
+When **real** team boundaries exist (2+ teams), migrate — do not invent `teams/` early:
+
+```text
+teams/<team>/helm/<service>/<env>/values.yaml
+CODEOWNERS
+```
+
+Example `CODEOWNERS`:
+
+```text
+*                       @gurujix-tech/platform
+teams/checkout/         @gurujix-tech/checkout
+```
+
+Then: protect `main` (PR + required CODEOWNERS review); point Argo `path:` and CI promote at the new paths; keep app-team tokens scoped to this repo only (never `platform-gitops` write).
+
+Until then: flat `<service>/<env>/` only.
+
+## Envs
+
+| Env | Runtime |
+| --- | --- |
+| **local** | kind (not promoted here) |
+| **dev** | EKS learning account |
+| **staging** / **prod** | later |
+
+## Bootstrap
+
+1. Create GitHub repo `gurujix-tech/application-manifests` and push this tree.
+2. Register the repo in Argo CD on EKS (same credentials pattern as other private repos).
+3. In `service-orders`, set secret `APPLICATION_MANIFESTS_TOKEN` (PAT with `contents:write` on this repo).

@@ -1,0 +1,6 @@
+# Desired image for env=dev (EKS learning cluster). Updated by service CI after ECR publish.
+# Chart + static EKS config stay in service-orders (values-eks.yaml); this file only promotes the artifact.
+image:
+  repository: 577572726499.dkr.ecr.us-east-1.amazonaws.com/service-orders
+  tag: "63862009c822be3ff1bf5b1d9865648d8c8366e1"
+  pullPolicy: Always
