@@ -9,8 +9,18 @@ Platform cluster config (Argo Applications, observability, Kyverno, LBC, …) st
 
 ```text
 service-orders/
-  dev/values.yaml    # image.tag promoted by service-orders CI after ECR publish
+  dev/values.yaml    # image.tag = semver (vMAJOR.MINOR.PATCH), set by release tag CI
 ```
+
+## Releases (semver)
+
+1. Feature branch → PR (all checks).
+2. Merge to `service-orders` `main`.
+3. CI **auto-bumps patch** (`v0.1.0` → `v0.1.1` → …), creates the git tag, publishes ECR, promote-PR to `dev/values.yaml`.
+4. You do **not** tag by hand. Later envs: promote the **same** semver (dispatch + approve) — no rebuild.
+
+To bump **minor/major** later: add a workflow input or label; until then every main merge is patch +1.
+
 
 ## Layout (later — multi-team + CODEOWNERS)
 
